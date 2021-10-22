@@ -1,4 +1,6 @@
-import type { Page } from "$ssr/ssr.types";
+import DefaultLayout from "../../layouts/default";
+
+import type { Page } from "$ssr";
 
 const About: Page = () => {
    return (
@@ -8,21 +10,12 @@ const About: Page = () => {
    );
 };
 
-About.layout = ({ children }) => {
-   return (
-      <>
-         <nav>Super barra de navegación desde about</nav>
-
-         <main>{children}</main>
-      </>
-   );
-};
-
 About.onServerSide = async () => {
    return {
-      props: {},
       redirect: "https://vitejs.dev/", // 302 by default
    };
 };
+
+About.layout = DefaultLayout;
 
 export default About;

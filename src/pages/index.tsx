@@ -1,5 +1,7 @@
+import DefaultLayout from "../layouts/default";
+
 import type { Request } from "express";
-import type { Page } from "$ssr/ssr.types";
+import type { Page } from "$ssr";
 
 interface IndexProps {
    message: string;
@@ -8,19 +10,20 @@ interface IndexProps {
 
 const Index: Page<IndexProps> = ({ message, path }) => {
    return (
-      <div className="h-screen">
-         <p>{message}</p>
-         <b>{path}</b>
+      <div>
+         <h4>From server:</h4>
+
+         <p>Message: {message}</p>
+         <p>Path: {path}</p>
       </div>
    );
 };
 
-Index.layout = ({ children }) => {
+Index.head = ({ message }) => {
    return (
       <>
-         <nav>Super barra de navegación</nav>
-
-         <main>{children}</main>
+         <title>Title 1</title>
+         <meta name="description" content={message} />
       </>
    );
 };
@@ -33,5 +36,7 @@ Index.onServerSide = async (ctx: Request) => {
       },
    };
 };
+
+Index.layout = DefaultLayout;
 
 export default Index;

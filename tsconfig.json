@@ -23,14 +23,8 @@
       "target": "es2020",
       "types": ["vite/client", "express"],
       "paths": {
-         "$ssr/*": ["src/lib/ssr/*"],
-         "$styles/*": ["src/styles/*"]
+         "$ssr": ["src/lib/ssr/index.ts"]
       }
    },
    "include": ["src/**/*"],
-   "ts-node": {
-      "compilerOptions": {
-         "module": "commonjs"
-      }
-   }
 }

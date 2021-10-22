@@ -1,6 +1,8 @@
 import { routes } from "./routes";
 import { SSRConsumer } from "./ssr-context";
 
+import CustomApp from "../../pages/_app";
+
 const Main: React.FunctionComponent = () => {
    return (
       <SSRConsumer>
@@ -10,15 +12,13 @@ const Main: React.FunctionComponent = () => {
             if (route) {
                const pageProps = ctx.props.pageProps;
 
-               if (route.layout) {
-                  return (
-                     <route.layout>
-                        <route.component {...pageProps} />
-                     </route.layout>
-                  );
-               }
-
-               return <route.component {...pageProps} />;
+               return (
+                  <CustomApp
+                     Component={route.component}
+                     pageProps={pageProps}
+                     Layout={route.layout || (({ children }) => <>{children}</>)}
+                  />
+               );
             }
 
             return <main>Not Found</main>;

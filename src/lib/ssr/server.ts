@@ -15,28 +15,28 @@ const createServer = async (root = process.cwd(), isProd = process.env.NODE_ENV 
 
    const app: Express = express();
 
+   app.use(compression());
+
    app.use(express.json() as RequestHandler);
    app.use(express.urlencoded({ extended: true }) as RequestHandler);
+
+   app.use("/api", require(path.resolve(__dirname, "api/index.js")).default);
 
    let vite: ViteDevServer | undefined = undefined;
 
    if (isProd) {
-      const apiRouterPath = path.resolve(__dirname, "api/index.js");
       const staticFilesPath = path.resolve(process.cwd(), "dist", "client");
 
       const staticMiddleware = serveStatic<ServerResponse>(staticFilesPath, {
          index: false,
       });
 
-      app.use(compression());
       app.use(staticMiddleware);
-
-      app.use("/api", require(apiRouterPath).default);
 
       app.use("*", async (req, res) => {
          try {
             const { render } = require("./entry/entry-server.js");
-            const { redirect, status, ctx, html } = await (render as EntryServerRender)(req);
+            const { redirect, status, ctx, html, head } = await (render as EntryServerRender)(req);
 
             if (redirect) {
                res.status(status || 302);
@@ -48,7 +48,8 @@ const createServer = async (root = process.cwd(), isProd = process.env.NODE_ENV 
             if (status === 200) {
                const content = indexTemplateContent
                   .replace("<!--ssr-data-->", JSON.stringify(ctx))
-                  .replace("<!--ssr-html-->", html);
+                  .replace("<!--ssr-html-->", html)
+                  .replace("<!--ssr-head-->", head || "");
 
                res.status(status);
                res.setHeader("content-type", "text/html; utf-8");
@@ -65,16 +66,11 @@ const createServer = async (root = process.cwd(), isProd = process.env.NODE_ENV 
       const vite: ViteDevServer = await getViteServer(root);
 
       app.use(vite.middlewares);
-
-      const apiRouterPath = path.join(process.cwd(), "src", "api");
-
-      app.use("/api", require(apiRouterPath).default);
-
       app.use("*", async (req, res) => {
          try {
             const template = await vite.transformIndexHtml(req.originalUrl, indexTemplateContent);
             const { render } = await vite.ssrLoadModule("/src/lib/ssr/entry-server.tsx");
-            const { redirect, status, ctx, html } = await (render as EntryServerRender)(req);
+            const { redirect, status, ctx, html, head } = await (render as EntryServerRender)(req);
 
             if (redirect) {
                res.status(status || 302);
@@ -86,7 +82,8 @@ const createServer = async (root = process.cwd(), isProd = process.env.NODE_ENV 
             if (status === 200) {
                const content = template
                   .replace("<!--ssr-data-->", JSON.stringify(ctx))
-                  .replace("<!--ssr-html-->", html);
+                  .replace("<!--ssr-html-->", html)
+                  .replace("<!--ssr-head-->", head || "");
 
                res.status(status);
                res.setHeader("content-type", "text/html; utf-8");

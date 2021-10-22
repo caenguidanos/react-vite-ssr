@@ -1,4 +1,4 @@
-import { renderToString } from "react-dom/server";
+import { renderToString, renderToStaticMarkup } from "react-dom/server";
 import { Request } from "express";
 
 import Entry from "./main";
@@ -6,9 +6,10 @@ import { SSRProvider } from "./ssr-context";
 import { routes } from "./routes";
 
 import type { EntryServerRender, PageContext } from "./ssr.types";
+import { ReactElement } from "react";
 
 export const render: EntryServerRender = async (request: Request) => {
-   const ctx: PageContext = { props: { pageProps: {} }, page: "", query: {}, params: {}, headers: {} };
+   const ctx: PageContext = { props: { pageProps: {} }, page: "", query: {}, params: {} };
 
    try {
       const route = routes.find((r) => r.path === request.originalUrl);
@@ -19,12 +20,13 @@ export const render: EntryServerRender = async (request: Request) => {
 
          ctx.page = request.originalUrl;
          ctx.query = request.query;
-         ctx.headers = request.headers;
 
          if (route.onServerSide) {
             const serverSideProps = await route.onServerSide(request);
 
-            ctx.props.pageProps = serverSideProps.props;
+            if (serverSideProps.props) {
+               ctx.props.pageProps = serverSideProps.props;
+            }
 
             if (serverSideProps.status) {
                status = serverSideProps.status;
@@ -33,6 +35,13 @@ export const render: EntryServerRender = async (request: Request) => {
             if (serverSideProps.redirect) {
                redirect = serverSideProps.redirect;
             }
+         }
+
+         let head: string | undefined;
+
+         if (route.head) {
+            const headElement: ReactElement = route.head(ctx.props.pageProps) as ReactElement;
+            head = renderToStaticMarkup(headElement);
          }
 
          return {
@@ -44,6 +53,7 @@ export const render: EntryServerRender = async (request: Request) => {
             ctx,
             status,
             redirect,
+            head,
          };
       }
 
