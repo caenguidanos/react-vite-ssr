@@ -1,11 +1,11 @@
 import { renderToString } from "react-dom/server";
 import { Request } from "express";
 
-import { App } from "./_app";
+import Entry from "./main";
 import { SSRProvider } from "./ssr-context";
 import { routes } from "./routes";
 
-import type { EntryServerRender, PageContext } from "./types";
+import type { EntryServerRender, PageContext } from "./ssr.types";
 
 export const render: EntryServerRender = async (request: Request) => {
    const ctx: PageContext = { props: { pageProps: {} }, page: "", query: {}, params: {}, headers: {} };
@@ -38,7 +38,7 @@ export const render: EntryServerRender = async (request: Request) => {
          return {
             html: renderToString(
                <SSRProvider value={ctx}>
-                  <App />
+                  <Entry />
                </SSRProvider>
             ),
             ctx,

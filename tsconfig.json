@@ -21,7 +21,11 @@
       "skipLibCheck": true,
       "sourceMap": true,
       "target": "es2020",
-      "types": ["vite/client", "express"]
+      "types": ["vite/client", "express"],
+      "paths": {
+         "$ssr/*": ["src/lib/ssr/*"],
+         "$styles/*": ["src/styles/*"]
+      }
    },
    "include": ["src/**/*"],
    "ts-node": {

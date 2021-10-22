@@ -1,13 +1,13 @@
 import { hydrate } from "react-dom";
 
-import { App } from "./_app";
+import Entry from "./main";
 import { SSRProvider } from "./ssr-context";
 
 const ssrDataEl = document.getElementById("__SSR_DATA__") as HTMLScriptElement;
 
 hydrate(
    <SSRProvider value={JSON.parse(ssrDataEl.innerText)}>
-      <App />
+      <Entry />
    </SSRProvider>,
    document.getElementById("__app")
 );

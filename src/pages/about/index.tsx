@@ -1,4 +1,4 @@
-import type { Page } from "src/types";
+import type { Page } from "$ssr/ssr.types";
 
 const About: Page = () => {
    return (

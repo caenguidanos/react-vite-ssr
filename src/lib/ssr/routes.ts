@@ -1,6 +1,6 @@
-import { Page } from "./types";
+import type { Page } from "./ssr.types";
 
-const pages = import.meta.globEager("./pages/**/*.tsx");
+const pages = import.meta.globEager("/src/pages/**/*.tsx");
 
 interface Route {
    path: string;
@@ -10,7 +10,7 @@ interface Route {
 }
 
 export const routes: Route[] = Object.keys(pages).map((path) => {
-   const result = path.match(/\.\/pages\/(.*)\.tsx$/);
+   const result = path.match(/\/src\/pages\/(.*)\.tsx$/);
 
    if (result) {
       const route = result[1].toLowerCase();

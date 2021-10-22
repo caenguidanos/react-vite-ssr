@@ -21,4 +21,5 @@ export interface EntryServerRenderResult {
    ctx: PageContext;
    status: number;
    redirect?: string;
+   message?: string;
 }

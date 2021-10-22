@@ -1,9 +1,7 @@
 import { routes } from "./routes";
 import { SSRConsumer } from "./ssr-context";
 
-import "./styles/index.css";
-
-export const App: React.FunctionComponent = () => {
+const Main: React.FunctionComponent = () => {
    return (
       <SSRConsumer>
          {(ctx) => {
@@ -29,4 +27,4 @@ export const App: React.FunctionComponent = () => {
    );
 };
 
-export default App;
+export default Main;

@@ -1,6 +1,5 @@
 import type { Request } from "express";
-
-import type { Page } from "../types";
+import type { Page } from "$ssr/ssr.types";
 
 interface IndexProps {
    message: string;
