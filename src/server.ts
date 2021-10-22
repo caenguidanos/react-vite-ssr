@@ -8,12 +8,14 @@ import { ServerResponse } from "http";
 
 import api from "./api";
 
+import type { EntryServerRender } from "./types";
+
 const isTest = process.env.NODE_ENV === "test" || !!process.env.VITE_TEST_BUILD;
 
 const createServer = async (root = process.cwd(), isProd = process.env.NODE_ENV === "production") => {
-   const resolve = (p: string) => path.resolve(__dirname, p);
-
-   const indexProd = isProd ? fs.readFileSync(resolve("./client/index.html"), "utf-8") : "";
+   const indexTemplate = isProd
+      ? fs.readFileSync(path.resolve(__dirname, "./client/index.html"), "utf-8")
+      : fs.readFileSync(path.join(process.cwd(), "index.html"), "utf-8");
 
    const app: Express = express();
 
@@ -38,8 +40,9 @@ const createServer = async (root = process.cwd(), isProd = process.env.NODE_ENV 
       app.use(vite.middlewares);
    } else {
       app.use(compression());
+
       app.use(
-         serveStatic<ServerResponse>(resolve("./client"), {
+         serveStatic<ServerResponse>(path.resolve(__dirname, "./client"), {
             index: false,
          })
       );
@@ -49,46 +52,43 @@ const createServer = async (root = process.cwd(), isProd = process.env.NODE_ENV 
 
    app.use("*", async (req, res) => {
       try {
-         const url = req.originalUrl;
-
-         let template;
-         let render;
+         let render: EntryServerRender;
+         let template: string = indexTemplate;
 
          if (!isProd) {
-            template = fs.readFileSync(path.join(process.cwd(), "index.html"), "utf-8");
-            template = await (vite as ViteDevServer).transformIndexHtml(url, template);
+            template = await (vite as ViteDevServer).transformIndexHtml(req.originalUrl, template);
 
             const entryServer = await (vite as ViteDevServer).ssrLoadModule("/src/entry-server.tsx");
 
             render = entryServer.render;
          } else {
-            template = indexProd;
-
             render = require("./server/entry-server.js").render;
          }
 
-         const context = {
-            query: req.query,
-            url: req.originalUrl,
-            request: req,
-         };
+         const serverRender = await render(req);
 
-         const { appHtml, propsData, status } = await render(url, context);
+         if (serverRender.redirect) {
+            res.status(serverRender.status || 302);
+            res.redirect(serverRender.redirect);
 
-         const ssrDataText = JSON.stringify(propsData).replace(/\//g, "\\/");
+            res.end();
+         } else {
+            const html = template
+               .replace("<!--ssr-data-->", JSON.stringify(serverRender.ctx))
+               .replace("<!--ssr-html-->", serverRender.html);
 
-         const html = template
-            .replace("<!--ssr-data-->", `<script id="ssr-data" type="text/json">${ssrDataText}</script>`)
-            .replace("<!--ssr-html-->", appHtml);
+            res.status(serverRender.status || 200);
+            res.setHeader("content-type", "text/html; utf-8");
 
-         res.status(status);
-         res.setHeader("Content-Type", "text/html; utf-8");
-         res.end(html);
+            res.end(html);
+         }
       } catch (e) {
          !isProd && (vite as ViteDevServer).ssrFixStacktrace(e as Error);
+
          console.error((e as Error).stack);
 
-         res.status(500).end((e as Error).stack);
+         res.status(500);
+         res.end((e as Error).stack);
       }
    });
 

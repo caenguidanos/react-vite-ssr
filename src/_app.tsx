@@ -4,19 +4,29 @@ import { SSRConsumer } from "./ssr-context";
 import "./styles/index.css";
 
 export const App: React.FunctionComponent = () => {
-  return (
-    <SSRConsumer>
-      {pageProps => {
-        const route = routes.find(r => r.path === pageProps.url);
+   return (
+      <SSRConsumer>
+         {(ctx) => {
+            const route = routes.find((r) => r.path === ctx.page);
 
-        if (route) {
-          return <route.component {...pageProps} />;
-        }
+            if (route) {
+               const pageProps = ctx.props.pageProps;
 
-        return <main>Not Found</main>;
-      }}
-    </SSRConsumer>
-  );
+               if (route.layout) {
+                  return (
+                     <route.layout>
+                        <route.component {...pageProps} />
+                     </route.layout>
+                  );
+               }
+
+               return <route.component {...pageProps} />;
+            }
+
+            return <main>Not Found</main>;
+         }}
+      </SSRConsumer>
+   );
 };
 
 export default App;

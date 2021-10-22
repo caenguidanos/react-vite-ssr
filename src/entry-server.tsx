@@ -5,35 +5,61 @@ import { App } from "./_app";
 import { SSRProvider } from "./ssr-context";
 import { routes } from "./routes";
 
-export async function render(
-  url: string,
-  context: {
-    url: string;
-    request: Request;
-  },
-) {
-  let data = { url };
+import type { EntryServerRender, PageContext } from "./types";
 
-  const route = routes.find(r => r.path === url);
+export const render: EntryServerRender = async (request: Request) => {
+   const ctx: PageContext = { props: { pageProps: {} }, page: "", query: {}, params: {}, headers: {} };
 
-  if (route) {
-    if (route.getServerSideProps) {
-      const props = await route.getServerSideProps(context.request);
+   try {
+      const route = routes.find((r) => r.path === request.originalUrl);
 
-      data = props;
-      data.url = url;
-    }
+      if (route) {
+         let status = 200;
+         let redirect: string | undefined = undefined;
 
-    const html = renderToString(
-      <SSRProvider value={data}>
-        <App />
-      </SSRProvider>,
-    );
+         ctx.page = request.originalUrl;
+         ctx.query = request.query;
+         ctx.headers = request.headers;
 
-    return { appHtml: html, propsData: data, status: 200 };
-  }
+         if (route.onServerSide) {
+            const serverSideProps = await route.onServerSide(request);
 
-  const html = renderToString(<main>Not Found</main>);
+            ctx.props.pageProps = serverSideProps.props;
 
-  return { appHtml: html, propsData: data, status: 404 };
-}
+            if (serverSideProps.status) {
+               status = serverSideProps.status;
+            }
+
+            if (serverSideProps.redirect) {
+               redirect = serverSideProps.redirect;
+            }
+         }
+
+         return {
+            html: renderToString(
+               <SSRProvider value={ctx}>
+                  <App />
+               </SSRProvider>
+            ),
+            ctx,
+            status,
+            redirect,
+         };
+      }
+
+      return { html: renderToString(<main>Not Found</main>), ctx, status: 404 };
+   } catch (error) {
+      return {
+         html: renderToString(
+            <main>
+               <p>Unavailable Service</p>
+               <pre>
+                  <code>{JSON.stringify(error as Error, undefined, 3)}</code>
+               </pre>
+            </main>
+         ),
+         ctx,
+         status: 500,
+      };
+   }
+};

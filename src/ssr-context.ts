@@ -1,6 +1,16 @@
 import { createContext } from "react";
 
-const { Provider, Consumer } = createContext<any>({});
+import type { PageContext } from "./types";
+
+const { Provider, Consumer } = createContext<PageContext>({
+   page: "",
+   params: {},
+   query: {},
+   headers: {},
+   props: {
+      pageProps: {},
+   },
+});
 
 export const SSRProvider = Provider;
 export const SSRConsumer = Consumer;

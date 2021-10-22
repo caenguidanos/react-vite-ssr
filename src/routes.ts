@@ -1,17 +1,27 @@
+import { Page } from "./types";
+
 const pages = import.meta.globEager("./pages/**/*.tsx");
 
-export const routes = Object.keys(pages).map(path => {
-  const result = path.match(/\.\/pages\/(.*)\.tsx$/);
+interface Route {
+   path: string;
+   component: Page;
+   onServerSide: Page["onServerSide"] | undefined;
+   layout: Page["layout"] | undefined;
+}
 
-  if (result) {
-    const route = result[1].toLowerCase();
+export const routes: Route[] = Object.keys(pages).map((path) => {
+   const result = path.match(/\.\/pages\/(.*)\.tsx$/);
 
-    return {
-      path: route === "index" ? "/" : `/${route.replace("/index", "")}`,
-      component: pages[path].default,
-      getServerSideProps: pages[path].getServerSideProps,
-    };
-  }
+   if (result) {
+      const route = result[1].toLowerCase();
 
-  throw new Error("Not found any page on pages/ folder");
+      return {
+         path: route === "index" ? "/" : `/${route.replace("/index", "")}`,
+         component: pages[path].default,
+         onServerSide: pages[path].default.onServerSide,
+         layout: pages[path].default.layout,
+      };
+   }
+
+   throw new Error("Not found any page on pages/ folder");
 });

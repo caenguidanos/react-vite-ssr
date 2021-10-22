@@ -1,21 +1,37 @@
-import { Request } from "express";
+import type { Request } from "express";
 
-const Index: React.FunctionComponent<{ message: string; headers: any }> = ({ message, headers }) => {
+import type { Page } from "../types";
+
+interface IndexProps {
+   message: string;
+   path: string;
+}
+
+const Index: Page<IndexProps> = ({ message, path }) => {
    return (
       <div className="h-screen">
          <p>{message}</p>
-
-         <pre className="m-10 w-20">
-            <code>{JSON.stringify(headers, undefined, 2)}</code>
-         </pre>
+         <b>{path}</b>
       </div>
    );
 };
 
-export const getServerSideProps = async (request: Request) => {
+Index.layout = ({ children }) => {
+   return (
+      <>
+         <nav>Super barra de navegación</nav>
+
+         <main>{children}</main>
+      </>
+   );
+};
+
+Index.onServerSide = async (ctx: Request) => {
    return {
-      message: "supermessage",
-      headers: request.headers,
+      props: {
+         path: ctx.originalUrl,
+         message: "supermessage",
+      },
    };
 };
 

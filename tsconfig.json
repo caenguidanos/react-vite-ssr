@@ -13,20 +13,20 @@
       "incremental": true,
       "isolatedModules": true,
       "jsx": "react-jsxdev",
-      "lib": ["DOM", "ESNext"],
+      "lib": ["dom", "esnext"],
       "strict": true,
       "outDir": "dist",
       "module": "esnext",
-      "moduleResolution": "Node",
+      "moduleResolution": "node",
       "skipLibCheck": true,
       "sourceMap": true,
-      "target": "ES2020",
+      "target": "es2020",
       "types": ["vite/client", "express"]
    },
    "include": ["src/**/*"],
    "ts-node": {
       "compilerOptions": {
-         "module": "CommonJS"
+         "module": "commonjs"
       }
    }
 }

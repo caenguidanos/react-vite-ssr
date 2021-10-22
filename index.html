@@ -5,9 +5,12 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
    </head>
 
-   <!--ssr-data-->
    <body>
-      <div id="app"><!--ssr-html--></div>
+      <div id="__app"><!--ssr-html--></div>
+
+      <script id="__SSR_DATA__" type="application/json">
+         <!--ssr-data-->
+      </script>
 
       <script type="module" src="/src/entry-client.tsx"></script>
    </body>
